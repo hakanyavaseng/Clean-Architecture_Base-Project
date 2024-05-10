@@ -1,0 +1,32 @@
+﻿using BaseProject.Application.Interfaces.Repositories;
+using BaseProject.Persistence.Contexts;
+using BaseProject.Persistence.Repositories.Common;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace BaseProject.Persistence
+{
+    public static class ServiceRegistration
+    {
+        public static void AddPersistenceLayerServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            ConfigureDbContext(services, configuration);
+            ConfigureRepositories(services);
+
+        }
+
+        public static void ConfigureDbContext(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddDbContext<BaseProjectDbContext>(opt =>
+            {
+                opt.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            });
+        }
+        public static void ConfigureRepositories(this IServiceCollection services)
+        {
+            services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
+            services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
+        }
+    }
+}
