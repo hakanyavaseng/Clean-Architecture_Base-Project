@@ -1,5 +1,6 @@
-﻿using BaseProject.Application.Interfaces.Repositories.Common;
-using BaseProject.Domain.Entities;
+﻿using BaseProject.Application.Features.Queries.Products.GetAllProducts;
+using BaseProject.Application.Interfaces.Repositories.Common;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BaseProject.API.Controllers
@@ -8,16 +9,15 @@ namespace BaseProject.API.Controllers
     [ApiController]
     public class TestController : ControllerBase
     {
-        private readonly IRepositoryManager repositoryManager;
-        public TestController(IRepositoryManager repositoryManager)
+        private readonly IMediator mediator;
+        public TestController(IMediator mediator)
         {
-            this.repositoryManager = repositoryManager;
+            this.mediator = mediator;
         }
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var products = await repositoryManager.GetReadRepository<Product>().GetAllAsync();
-           
+            var products = await mediator.Send(new GetAllProductsRequest());
             return Ok(products);
         }
 

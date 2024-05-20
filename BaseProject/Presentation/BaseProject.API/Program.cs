@@ -1,4 +1,5 @@
 using BaseProject.Persistence;
+using BaseProject.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddPersistenceLayerServices(builder.Configuration);
+builder.Services.AddApplicationLayerServices();
 
 var app = builder.Build();
 
