@@ -1,11 +1,11 @@
-﻿using BaseProject.Application.Interfaces.Repositories;
+﻿using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace BaseProject.Persistence.Repositories.Common
 {
-    public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity, new()
+    public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
     {
         private readonly DbContext dbContext;
 

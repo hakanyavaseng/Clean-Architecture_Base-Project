@@ -1,5 +1,7 @@
 ﻿using BaseProject.Application.Interfaces.Repositories;
+using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Persistence.Contexts;
+using BaseProject.Persistence.Repositories;
 using BaseProject.Persistence.Repositories.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,8 +27,14 @@ namespace BaseProject.Persistence
         }
         public static void ConfigureRepositories(this IServiceCollection services)
         {
+            services.AddScoped<IRepositoryManager, RepositoryManager>();
+
             services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
             services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
+
+            services.AddScoped<IProductReadRepository, ProductReadRepository>();
+            services.AddScoped<IProductWriteRepository, ProductWriteRepository>();
+
         }
     }
 }

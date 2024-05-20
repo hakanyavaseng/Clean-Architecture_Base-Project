@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
-namespace BaseProject.Application.Interfaces.Repositories
+namespace BaseProject.Application.Interfaces.Repositories.Common
 {
     public interface IReadRepository<T> where T : class, IBaseEntity, new()
     {

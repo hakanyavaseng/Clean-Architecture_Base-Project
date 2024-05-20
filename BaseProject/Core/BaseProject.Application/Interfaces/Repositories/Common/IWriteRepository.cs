@@ -1,15 +1,15 @@
 ﻿using BaseProject.Domain.Entities.Common;
 using System.Linq.Expressions;
 
-namespace BaseProject.Application.Interfaces.Repositories
+namespace BaseProject.Application.Interfaces.Repositories.Common
 {
-    public interface IWriteRepository<T> where T : class, IBaseEntity, new()
+    public interface IWriteRepository<T> where T : BaseEntity
     {
         //Create
         Task<int> AddAsync(T entity);
         Task<int> AddAsync(IEnumerable<T> entities);
         int Add(T entity);
-        int Add(IEnumerable<T> entities);   
+        int Add(IEnumerable<T> entities);
 
         //Update
         Task<int> UpdateAsync(T entity);

@@ -1,4 +1,4 @@
-﻿using BaseProject.Application.Interfaces.Repositories;
+﻿using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace BaseProject.Persistence.Repositories.Common
 {
-    public class ReadRepository<T> : IReadRepository<T> where T : BaseEntity, new()
+    public class ReadRepository<T> : IReadRepository<T> where T : class, IBaseEntity, new()
     {
         private readonly DbContext dbContext;
         public ReadRepository(DbContext dbContext)
