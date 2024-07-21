@@ -1,7 +1,10 @@
 ﻿using BaseProject.Application.Features.Queries.Products.GetAllProducts;
 using BaseProject.Application.Interfaces.Repositories.Common;
+using BaseProject.Domain.Filtering;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Web;
 
 namespace BaseProject.API.Controllers
 {
@@ -21,27 +24,29 @@ namespace BaseProject.API.Controllers
             return Ok(products);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        [HttpPost("[action]")]
+        public async Task<IActionResult> GetWithFilterAsync([FromBody] string filtersJson)
         {
-            return Ok();
+            var filters = JsonSerializer.Deserialize<List<QueryFilter>>(filtersJson);
+            var products = await mediator.Send(new GetAllProductsRequest { Filters = filters });
+            return Ok(products);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post()
+        public IActionResult Post()
         {
 
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put()
+        public IActionResult Put()
         {
             return Ok();
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete()
+        public IActionResult Delete()
         {
             return Ok();
         }

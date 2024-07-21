@@ -24,4 +24,6 @@
     <ProjectReference Include="..\..\Infrastructure\BaseProject.Persistence\BaseProject.Persistence.csproj" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="https://json.schemastore.org/apple-app-site-association.json" /></VisualStudio></ProjectExtensions>
+
 </Project>
