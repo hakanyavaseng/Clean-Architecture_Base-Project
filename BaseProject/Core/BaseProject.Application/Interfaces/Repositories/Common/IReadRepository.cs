@@ -1,4 +1,5 @@
 ﻿using BaseProject.Domain.Entities.Common;
+using BaseProject.Domain.Filtering;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
@@ -18,6 +19,8 @@ namespace BaseProject.Application.Interfaces.Repositories.Common
         Task<T> GetAsync(Expression<Func<T, bool>> predicate,
            Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
            bool enableTracking = false);
+
+        Task<IList<T>> GetWithFilterAsync(QueryParameters queryParameters);
         IQueryable<T> Find(Expression<Func<T, bool>> predicate, bool enableTracking = false);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
     }

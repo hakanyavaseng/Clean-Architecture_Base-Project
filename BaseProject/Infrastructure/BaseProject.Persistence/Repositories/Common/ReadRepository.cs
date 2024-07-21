@@ -1,5 +1,7 @@
 ﻿using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Domain.Entities.Common;
+using BaseProject.Domain.Filtering;
+using BaseProject.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
@@ -62,6 +64,21 @@ namespace BaseProject.Persistence.Repositories.Common
 
             return await queryable.FirstOrDefaultAsync(predicate);
         }
+        public async Task<IList<T>> GetWithFilterAsync(QueryParameters queryParameters)
+        {
+            IQueryable<T> query = Table;
+
+            if(queryParameters.Filters is not null && queryParameters.Filters.Count > 0)
+                query = query.ApplyFiltering(queryParameters);
+
+            if(!string.IsNullOrEmpty(queryParameters.SortColumn))
+                query = query.ApplySorting(queryParameters);
+
+            if(queryParameters.PageSize > 0)
+                query = query.ApplyPaging(queryParameters);
+
+            return await query.ToListAsync();
+        }
         public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
         {
             Table.AsNoTracking();
@@ -78,5 +95,7 @@ namespace BaseProject.Persistence.Repositories.Common
 
             return Table.Where(predicate);
         }
+
+    
     }
 }

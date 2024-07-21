@@ -1,5 +1,4 @@
-﻿using BaseProject.Application.Interfaces.Filtering;
-using BaseProject.Application.Interfaces.Repositories;
+﻿using BaseProject.Application.Interfaces.Repositories;
 using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Persistence.Contexts;
 using BaseProject.Persistence.Repositories;

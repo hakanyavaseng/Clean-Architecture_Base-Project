@@ -1,9 +1,14 @@
 using BaseProject.Persistence;
 using BaseProject.Application;
+using BaseProject.Persistence.Filtering;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new MatchModeConverter());
+                });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

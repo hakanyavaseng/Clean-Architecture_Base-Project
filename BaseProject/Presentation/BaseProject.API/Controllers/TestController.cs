@@ -25,10 +25,9 @@ namespace BaseProject.API.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> GetWithFilterAsync([FromBody] string filtersJson)
+        public async Task<IActionResult> GetWithFilterAsync(QueryParameters queryParameters)
         {
-            var filters = JsonSerializer.Deserialize<List<QueryFilter>>(filtersJson);
-            var products = await mediator.Send(new GetAllProductsRequest { Filters = filters });
+            var products = await mediator.Send(new GetAllProductsRequest { QueryParameters = queryParameters });
             return Ok(products);
         }
 
