@@ -1,8 +1,7 @@
-﻿using BaseProject.Domain.Utils;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using System.Text.Json;
 using SendGrid.Helpers.Errors.Model;
+using Microsoft.AspNetCore.Mvc;
 namespace BaseProject.API.Middlewares
 {
     public class ExceptionHandlingMiddleware : IMiddleware
@@ -53,44 +52,42 @@ namespace BaseProject.API.Middlewares
                 NotFoundException => StatusCodes.Status404NotFound,
                 UnauthorizedException => StatusCodes.Status401Unauthorized,
                 ForbiddenException => StatusCodes.Status403Forbidden,
-                //ValidationException => StatusCodes.Status422UnprocessableEntity,
                 _ => StatusCodes.Status500InternalServerError
             };
-        private ExceptionHandlingModel CreateExceptionDetails(in HttpContext context, in Exception exception)
+        private ProblemDetails CreateExceptionDetails(in HttpContext context, in Exception exception)
         {
             var statusCode = context.Response.StatusCode;
             var reasonPhrase = ReasonPhrases.GetReasonPhrase(statusCode);
 
-            //if (exception.GetType() == typeof(ValidationException))
-            //{
-            //    ((ValidationException)exception).Errors
-            //}
 
-                if (string.IsNullOrEmpty(reasonPhrase))
+            if (string.IsNullOrEmpty(reasonPhrase))
             {
                 reasonPhrase = DefaultErrorMessage;
             }
 
-            var problemDetails = new ExceptionHandlingModel()
+            var problemDetails = new ProblemDetails()
             {
+                Title = reasonPhrase,
                 Status = statusCode,
-                Title = reasonPhrase,   
-                Message = exception.Message,
-                Url = context.Request.Path,
-                Extensions =
-                {
-                    ["errorCode"] = Guid.NewGuid().ToString()
-                }
+                Detail = exception.Message,
+                Type = $"https://httpstatuses.com/{statusCode}",
+                Instance = context.Request.Path,
+                Extensions = new Dictionary<string, object>()
             };
 
             if (_env.IsProduction())
             {
                 return problemDetails;
             }
-            //problemDetails.Detail = exception.ToString();
-            problemDetails.Instance = exception.Source;
-            problemDetails.Extensions["clientIp"]= context.Connection.RemoteIpAddress.ToString();
+
+            if(context.Request.QueryString.HasValue)
+                problemDetails.Extensions["queryString"] = context.Request.QueryString.Value;
+            if (context.Request.HasFormContentType)
+                problemDetails.Extensions["form"] = context.Request.Form.ToDictionary(k => k.Key, v => v.Value.ToString());
+
+            problemDetails.Extensions["clientIp"] = context.Connection.RemoteIpAddress.ToString();
             problemDetails.Extensions["traceId"] = context.TraceIdentifier;
+            problemDetails.Extensions["stackTrace"] = exception.StackTrace;
             problemDetails.Extensions["data"] = exception.Data;
             return problemDetails;
         }

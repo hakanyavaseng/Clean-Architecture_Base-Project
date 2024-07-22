@@ -34,8 +34,8 @@ namespace BaseProject.API.Controllers
             return Ok(products);
         }
 
-        [HttpPost]
-        public IActionResult Post()
+        [HttpPost("/a")]
+        public IActionResult Post([FromForm] int a)
         {
             throw new UnauthorizedException("Test exception");
 
@@ -52,7 +52,7 @@ namespace BaseProject.API.Controllers
         [HttpDelete]
         public IActionResult Delete()
         {
-            throw new ValidationException()
+            throw new ValidationException();
             return Ok();
         }
 
