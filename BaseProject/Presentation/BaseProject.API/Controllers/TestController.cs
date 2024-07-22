@@ -3,6 +3,8 @@ using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Domain.Filtering;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SendGrid.Helpers.Errors.Model;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Web;
 
@@ -20,6 +22,7 @@ namespace BaseProject.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            throw new Exception("Test exception");
             var products = await mediator.Send(new GetAllProductsRequest());
             return Ok(products);
         }
@@ -34,6 +37,7 @@ namespace BaseProject.API.Controllers
         [HttpPost]
         public IActionResult Post()
         {
+            throw new UnauthorizedException("Test exception");
 
             return Ok();
         }
@@ -41,12 +45,14 @@ namespace BaseProject.API.Controllers
         [HttpPut]
         public IActionResult Put()
         {
+            throw new ForbiddenException("Test exception");
             return Ok();
         }
 
         [HttpDelete]
         public IActionResult Delete()
         {
+            throw new ValidationException()
             return Ok();
         }
 
