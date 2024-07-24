@@ -1,5 +1,6 @@
 ﻿using BaseProject.Application.Features.Queries.Products.GetAllProducts;
 using BaseProject.Application.Interfaces.Repositories.Common;
+using BaseProject.Application.Interfaces.Services.Tokens;
 using BaseProject.Domain.Filtering;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -15,16 +16,18 @@ namespace BaseProject.API.Controllers
     public class TestController : ControllerBase
     {
         private readonly IMediator mediator;
-        public TestController(IMediator mediator)
+        private readonly ITokenService tokenService;
+
+        public TestController(IMediator mediator, ITokenService tokenService)
         {
             this.mediator = mediator;
+            this.tokenService = tokenService;
         }
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            throw new Exception("Test exception");
-            var products = await mediator.Send(new GetAllProductsRequest());
-            return Ok(products);
+            string token = await tokenService.GenerateTokenAsync(Guid.NewGuid().ToString());
+            return Ok(token);
         }
 
         [HttpPost("[action]")]

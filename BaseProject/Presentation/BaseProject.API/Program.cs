@@ -1,5 +1,6 @@
 using BaseProject.Persistence;
 using BaseProject.Application;
+using BaseProject.Infrastructure;
 using BaseProject.Persistence.Filtering;
 using BaseProject.API.Middlewares;
 
@@ -15,6 +16,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddPersistenceLayerServices(builder.Configuration);
 builder.Services.AddApplicationLayerServices();
+builder.Services.AddInfrastructureLayerServices(builder.Configuration);
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
