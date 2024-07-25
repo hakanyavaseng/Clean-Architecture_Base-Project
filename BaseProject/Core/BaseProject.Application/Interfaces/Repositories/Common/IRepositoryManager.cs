@@ -2,7 +2,7 @@
 
 namespace BaseProject.Application.Interfaces.Repositories.Common
 {
-    public interface IRepositoryManager
+    public interface IRepositoryManager : IDisposable
     {
         IReadRepository<T> GetReadRepository<T>() where T : class, IBaseEntity, new();
         IWriteRepository<T> GetWriteRepository<T>() where T : BaseEntity;
