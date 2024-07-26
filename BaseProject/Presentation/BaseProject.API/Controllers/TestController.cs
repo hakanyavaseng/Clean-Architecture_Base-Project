@@ -1,6 +1,8 @@
 ﻿using BaseProject.API.Controllers.Base;
 using BaseProject.Application.Interfaces.Services.Tokens;
 using BaseProject.Domain.Filtering;
+using BaseProject.Domain.Models;
+using BaseProject.Domain.Models.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BaseProject.API.Controllers
@@ -15,15 +17,15 @@ namespace BaseProject.API.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> GetWithFilterAsync(QueryParameters queryParameters)
+        public Result GetWithFilterAsync(QueryParameters queryParameters)
         {
-            return Ok();
+            return Result.Successful();
         }
 
         [HttpPost("/a")]
-        public IActionResult Post([FromForm] int a)
+        public Result Post([FromForm] int a)
         {
-            return Ok();
+            return Result.Fail(CommonErrors.NotFoundException);
         }
 
         [HttpPut]
