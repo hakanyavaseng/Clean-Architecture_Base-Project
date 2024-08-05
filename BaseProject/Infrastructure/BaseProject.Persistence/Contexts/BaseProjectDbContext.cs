@@ -1,10 +1,11 @@
 ﻿using BaseProject.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace BaseProject.Persistence.Contexts
 {
-    public class BaseProjectDbContext : DbContext
+    public class BaseProjectDbContext : IdentityDbContext<AppUser,AppRole,Guid>
     {
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }

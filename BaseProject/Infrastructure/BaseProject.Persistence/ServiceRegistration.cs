@@ -1,5 +1,6 @@
 ﻿using BaseProject.Application.Interfaces.Repositories;
 using BaseProject.Application.Interfaces.Repositories.Common;
+using BaseProject.Domain.Entities;
 using BaseProject.Persistence.Contexts;
 using BaseProject.Persistence.Repositories;
 using BaseProject.Persistence.Repositories.Common;
@@ -15,7 +16,7 @@ namespace BaseProject.Persistence
         {
             ConfigureDbContext(services, configuration);
             ConfigureRepositories(services);
-
+            ConfigureIdentity(services);
         }
 
         public static void ConfigureDbContext(this IServiceCollection services, IConfiguration configuration)
@@ -35,6 +36,11 @@ namespace BaseProject.Persistence
             services.AddScoped<IProductReadRepository, ProductReadRepository>();
             services.AddScoped<IProductWriteRepository, ProductWriteRepository>();
 
+        }
+
+        public static void ConfigureIdentity(this IServiceCollection services)
+        {
+            services.AddIdentityCore<AppUser>().AddEntityFrameworkStores<BaseProjectDbContext>();
         }
     }
 }
