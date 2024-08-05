@@ -2,6 +2,7 @@
 using System.Text.Json;
 using SendGrid.Helpers.Errors.Model;
 using Microsoft.AspNetCore.Mvc;
+using Serilog.Context;
 namespace BaseProject.API.Middlewares
 {
     public class ExceptionHandlingMiddleware : IMiddleware
@@ -18,21 +19,25 @@ namespace BaseProject.API.Middlewares
 
         public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
-            try
+            using (LogContext.PushProperty("RemoteIpAddress", httpContext.Connection.RemoteIpAddress))
+            using (LogContext.PushProperty("UserId", httpContext.User?.Identity?.IsAuthenticated != null || true ? httpContext.User.Identity.Name : "-"))
             {
-                await next(httpContext);
-            }
-            catch (Exception exception) when (httpContext.RequestAborted.IsCancellationRequested)
-            {
-                const string message = "Request was cancelled";
-                _logger.LogDebug(exception, message);
+                try
+                {
+                    await next(httpContext);
+                }
+                catch (Exception exception) when (httpContext.RequestAborted.IsCancellationRequested)
+                {
+                    const string message = "Request was cancelled";
+                    _logger.LogWarning(exception, message);
 
-                httpContext.Response.Clear();
-                httpContext.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(httpContext, ex);
+                    httpContext.Response.Clear();
+                    httpContext.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+                }
+                catch (Exception ex)
+                {
+                    await HandleExceptionAsync(httpContext, ex);
+                }
             }
         }
         private async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
@@ -43,6 +48,7 @@ namespace BaseProject.API.Middlewares
 
             var details = CreateExceptionDetails(httpContext, exception);
             var json = JsonSerializer.Serialize(details);
+            _logger.LogError(exception, exception.Message, json);
             await httpContext.Response.WriteAsync(json);
         }
         private static int GetStatusCode(Exception exception) =>

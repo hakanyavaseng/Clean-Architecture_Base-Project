@@ -29,7 +29,7 @@ namespace BaseProject.Infrastructure.Tokens
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                   new Claim("UserId", JsonSerializer.Serialize(userId)),
+                   new Claim(ClaimTypes.Name, JsonSerializer.Serialize(userId)),
                    new Claim("IssuedAt", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")),
                    new Claim("Expires", DateTime.UtcNow.AddMinutes(tokenSettings.TokenLifeTime).ToString("yyyy-MM-dd HH:mm:ss")),
                    new Claim("IsAdmin", "false"),
@@ -44,7 +44,8 @@ namespace BaseProject.Infrastructure.Tokens
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-            return await Task.FromResult(tokenHandler.WriteToken(token));
+            string accessToken =  await Task.FromResult(tokenHandler.WriteToken(token));
+            return accessToken;
         }
 
         public async Task<string> GetClaim(string token, string claimType)
