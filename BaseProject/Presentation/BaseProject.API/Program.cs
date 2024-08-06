@@ -13,10 +13,22 @@ using Serilog.Sinks.MSSqlServer;
 using System.Collections.ObjectModel;
 using System.Data;
 using Serilog.Context;
+using BaseProject.API.Filters;
+using FluentValidation.AspNetCore;
+using ServiceRegistration = BaseProject.Application.ServiceRegistration;
+using BaseProject.Application.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
+builder.Services
+                .AddControllers(configure =>
+                {
+                    configure.Filters.Add<ValidationFilter>();
+                })
+                .AddFluentValidation(p =>
+                {
+                    p.RegisterValidatorsFromAssemblyContaining<AppUserValidator>();
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new MatchModeConverter());

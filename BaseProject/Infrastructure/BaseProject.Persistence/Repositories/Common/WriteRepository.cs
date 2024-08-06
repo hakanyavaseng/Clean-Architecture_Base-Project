@@ -1,11 +1,12 @@
 ﻿using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 
 namespace BaseProject.Persistence.Repositories.Common
 {
-    public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
+    public class WriteRepository<T> : IWriteRepository<T, Guid> where T : BaseEntity
     {
         private readonly DbContext dbContext;
 
@@ -17,166 +18,111 @@ namespace BaseProject.Persistence.Repositories.Common
 
         public IQueryable<T> AsQueryable() => Table.AsQueryable();
 
+        private async Task<bool> ExecuteSafelyAsync(Func<Task> operation)
+        {
+            try
+            {
+                await operation();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool ExecuteSafely(Action operation)
+        {
+            try
+            {
+                operation();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         #region Create
-        public virtual async Task<int> AddAsync(T entity)
+        public virtual async Task<bool> AddAsync(T entity)
         {
-            await Table.AddAsync(entity);
-            return await dbContext.SaveChangesAsync();
+            return await ExecuteSafelyAsync(async () => {
+                EntityEntry entry = await Table.AddAsync(entity);
+                if (entry.State != EntityState.Added)
+                    throw new Exception("Entity not added.");
+            });
         }
 
-        public virtual int Add(T entity)
+        public virtual bool Add(T entity)
         {
-           Table.Add(entity);
-           return dbContext.SaveChanges();
-        }
-
-        public virtual async Task<int> AddAsync(IEnumerable<T> entities)
-        {
-            if (entities is not null && !entities.Any())
-                return 0;
-
-            await Table.AddRangeAsync(entities);
-            return await dbContext.SaveChangesAsync();
-        }
-
-        public int Add(IEnumerable<T> entities)
-        {
-            if (entities != null && !entities.Any())
-                return 0;
-
-            Table.AddRange(entities);
-            return dbContext.SaveChanges();
+            return ExecuteSafely(() => {
+                EntityEntry entry = Table.Add(entity);
+                if (entry.State != EntityState.Added)
+                    throw new Exception("Entity not added.");
+            });
         }
         #endregion
 
         #region Update
-        public virtual async Task<int> UpdateAsync(T entity)
+        public virtual async Task<bool> UpdateAsync(T entity)
         {
-            Table.Attach(entity);
-            dbContext.Entry(entity).State = EntityState.Modified;
-
-            return await dbContext.SaveChangesAsync();
+            return await ExecuteSafelyAsync(async () => {
+                Table.Attach(entity);
+                dbContext.Entry(entity).State = EntityState.Modified;
+            });
         }
 
-        public virtual int Update(T entity)
+        public virtual bool Update(T entity)
         {
-            Table.Attach(entity);
-            dbContext.Entry(entity).State = EntityState.Modified;
-
-            return dbContext.SaveChanges();
+            return ExecuteSafely(() => {
+                Table.Attach(entity);
+                dbContext.Entry(entity).State = EntityState.Modified;
+            });
         }
-
         #endregion
 
         #region Delete
-        public virtual async Task<int> DeleteAsync(T entity)
+        public virtual async Task<bool> DeleteAsync(T entity)
         {
-            if (dbContext.Entry(entity).State == EntityState.Detached)
-                Table.Attach(entity);
-            
-            Table.Remove(entity);
+            return await ExecuteSafelyAsync(async () => {
+                if (dbContext.Entry(entity).State == EntityState.Detached)
+                    Table.Attach(entity);
 
-            return await dbContext.SaveChangesAsync();
+                await Task.Run(() => Table.Remove(entity));
+            });
         }
 
-        public virtual async Task<int> DeleteAsync(Guid id)
+        public virtual async Task<bool> DeleteAsync(Guid id)
         {
-            var entity = await Table.FindAsync(id);
-            return await DeleteAsync(entity); 
+            return await ExecuteSafelyAsync(async () => {
+                var entity = await Table.FindAsync(id);
+                if (entity == null)
+                    throw new Exception("Entity not found.");
+
+                await DeleteAsync(entity);
+            });
         }
 
-        public virtual async Task<bool> DeleteAsync(Expression<Func<T, bool>> predicate)
+        public virtual bool Delete(T entity)
         {
-           dbContext.RemoveRange(Table.Where(predicate));
-           return await dbContext.SaveChangesAsync() > 0;
+            return ExecuteSafely(() => {
+                if (dbContext.Entry(entity).State == EntityState.Detached)
+                    Table.Attach(entity);
+
+                Table.Remove(entity);
+            });
         }
 
-        public virtual int Delete(T entity)
+        public virtual bool Delete(Guid id)
         {
-            if (dbContext.Entry(entity).State == EntityState.Detached)
-                Table.Attach(entity);
-
-            Table.Remove(entity);
-
-            return dbContext.SaveChanges();
-        }
-
-        public virtual int Delete(Guid id)
-        {
-            var entity = Table.Find(id);
-            return Delete(entity);
-        }
-
-        public virtual bool Delete(Expression<Func<T, bool>> predicate)
-        {
-            dbContext.RemoveRange(Table.Where(predicate));
-            return dbContext.SaveChanges() > 0;
+            return ExecuteSafely(() => {
+                var entity = Table.Find(id);
+                if (entity == null)
+                    throw new Exception("Entity not found.");
+                Delete(entity);
+            });
         }
         #endregion
-
-        #region AddOrUpdate
-        public virtual async Task<int> AddOrUpdateAsync(T entity)
-        {
-            if (!Table.Local.Any(i => EqualityComparer<Guid>.Default.Equals(i.Id, entity.Id)))
-                dbContext.Update(entity);
-            return await dbContext.SaveChangesAsync();
-        }
-        public int AddOrUpdate(T entity)
-        {
-            if (!Table.Local.Any(i => EqualityComparer<Guid>.Default.Equals(i.Id, entity.Id)))
-                dbContext.Update(entity);
-            return dbContext.SaveChanges();
-        }
-        #endregion
-
-        #region Bulk Methods
-        public virtual Task BulkDeleteById(IEnumerable<Guid> ids)
-        {
-            if (ids != null && !ids.Any())
-                return Task.CompletedTask;
-
-            dbContext.RemoveRange(Table.Where(i => ids.Contains(i.Id)));
-            return dbContext.SaveChangesAsync();
-        }
-
-        public virtual Task BulkDelete(Expression<Func<T, bool>> predicate)
-        {
-            dbContext.RemoveRange(Table.Where(predicate));
-            return dbContext.SaveChangesAsync();
-        }
-
-        public virtual Task BulkDelete(IEnumerable<T> entities)
-        {
-            if (entities != null && !entities.Any())
-                return Task.CompletedTask;
-
-            Table.RemoveRange(entities);
-            return dbContext.SaveChangesAsync();
-        }
-
-        public virtual Task BulkUpdate(IEnumerable<T> entities)
-        {
-            if (entities != null && !entities.Any())
-                return Task.CompletedTask;
-
-            foreach (var entityItem in entities)
-            {
-                Table.Update(entityItem);
-            }
-
-            return dbContext.SaveChangesAsync();
-        }
-
-        public virtual async Task BulkAdd(IEnumerable<T> entities)
-        {
-            if (entities != null && !entities.Any())
-                await Task.CompletedTask;
-
-            await Table.AddRangeAsync(entities);
-
-            await dbContext.SaveChangesAsync();
-        }
-
-        #endregion    
     }
 }

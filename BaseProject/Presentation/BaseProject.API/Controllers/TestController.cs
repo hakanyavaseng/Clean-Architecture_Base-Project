@@ -1,10 +1,12 @@
 ﻿using BaseProject.API.Controllers.Base;
+using BaseProject.Application.Interfaces.Repositories.Common;
 using BaseProject.Application.Interfaces.Services.Tokens;
+using BaseProject.Domain.DTOs.AppUserDtos;
 using BaseProject.Domain.Entities;
 using BaseProject.Domain.Filtering;
 using BaseProject.Domain.Models;
-using BaseProject.Domain.Models.Errors;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SendGrid.Helpers.Errors.Model;
 using System.Net;
@@ -16,17 +18,20 @@ namespace BaseProject.API.Controllers
     {
         private readonly ILogger<Product> logger;
         private readonly ITokenService token;
-
-        public TestController(ILogger<Product> logger, ITokenService token)
+        private readonly UserManager<AppUser> userManager;
+        private readonly IRepositoryManager repositoryManager;
+        public TestController(ILogger<Product> logger, ITokenService token, UserManager<AppUser> userManager, IRepositoryManager repositoryManager)
         {
 
             this.logger = logger;
             this.token = token;
+            this.userManager = userManager;
+            this.repositoryManager = repositoryManager;
         }
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-             return Ok();
+            return Ok();
         }
 
         [HttpGet("[action]")]
@@ -40,12 +45,18 @@ namespace BaseProject.API.Controllers
             });
         }
 
-        [Authorize]
-        [HttpPost("test/{a}")]
-        public Result Post(int a)
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> Post([FromBody] Create_User_Dto dto)
         {
-            throw new NotFoundException("Requested source not found!");
-            return Result.Fail(CommonErrors.NotFoundException);
+            var user = new AppUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email
+            };
+            IdentityResult result = await userManager.CreateAsync(user, dto.Password);
+            await repositoryManager.SaveAsync();
+
+            return Ok(user.Id);
         }
 
         [HttpPut]

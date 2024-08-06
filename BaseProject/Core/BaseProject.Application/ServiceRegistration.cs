@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace BaseProject.Application
@@ -11,6 +12,8 @@ namespace BaseProject.Application
             {
                 configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             });
+
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         }
     }
 }
